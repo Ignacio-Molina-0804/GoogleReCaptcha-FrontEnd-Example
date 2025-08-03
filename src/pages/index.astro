@@ -24,6 +24,10 @@ const siteKey = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY;
 
   <!-- Scripts y estilos específicos de esta página -->
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+  <script>
+	import "../scripts/validationScript.ts";
+  </script>
   <style>
     main {
       max-width: 600px;
@@ -42,36 +46,4 @@ const siteKey = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY;
       cursor: pointer;
     }
   </style>
-
-  <!-- Validación del formulario -->
-  <script is:inline>
-    document.getElementById("formulario").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const token = grecaptcha.getResponse();
-      if (!token) {
-        alert("Por favor, completa el reCAPTCHA");
-        return;
-      }
-
-      try {
-        const response = await fetch("http://localhost:8080/api/verify-captcha", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ captcha: token }),
-        });
-
-        if (response.ok) {
-          alert("¡Captcha válido!");
-          e.target.reset();
-          grecaptcha.reset();
-        } else {
-          throw new Error("Error en la validación");
-        }
-      } catch (error) {
-        alert("Captcha inválido o error del servidor");
-        console.error(error);
-      }
-    });
-  </script>
 </Layout>
