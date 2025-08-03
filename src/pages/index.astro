@@ -1,11 +1,77 @@
 ---
-import Welcome from '../components/Welcome.astro';
+// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const siteKey = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY;
 ---
 
 <Layout>
-	<Welcome />
+  <main>
+    <h1>Formulario con reCAPTCHA</h1>
+    <form id="formulario">
+      <input 
+        type="text" 
+        name="nombre" 
+        placeholder="Tu nombre" 
+        required 
+      />
+
+      <!-- Widget reCAPTCHA -->
+      <div class="g-recaptcha" data-sitekey={siteKey}></div>
+
+      <button type="submit">Enviar</button>
+    </form>
+  </main>
+
+  <!-- Scripts y estilos específicos de esta página -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: Arial, sans-serif;
+    }
+    .g-recaptcha {
+      margin: 1.5rem 0;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      background: #0078d4;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+
+  <!-- Validación del formulario -->
+  <script is:inline>
+    document.getElementById("formulario").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const token = grecaptcha.getResponse();
+      if (!token) {
+        alert("Por favor, completa el reCAPTCHA");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:8080/api/verify-captcha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ captcha: token }),
+        });
+
+        if (response.ok) {
+          alert("¡Captcha válido!");
+          e.target.reset();
+          grecaptcha.reset();
+        } else {
+          throw new Error("Error en la validación");
+        }
+      } catch (error) {
+        alert("Captcha inválido o error del servidor");
+        console.error(error);
+      }
+    });
+  </script>
 </Layout>
